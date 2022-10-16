@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <Button
+                    android:id="@+id/btDoneActSha"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginRight="55dp"
+                    android:background="@drawable/fromundone"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="@+id/edtoolbar"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/edtoolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/white_dark"
+                    app:popupTheme="@style/MyToolbar"
+                    app:titleMarginStart="50dp"/>
+
+                <Button
+                    android:id="@+id/btback_from_shajara"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_marginLeft="10dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:background="@drawable/ic_back"/>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:background="@drawable/back_act"
+                    android:orientation="horizontal"
+                    android:padding="10dp"
+                    android:layout_marginRight="12dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/btDoneActSha"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <ImageView
+                        android:id="@+id/btDeleteActSha"
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:layout_marginLeft="8dp"
+                        android:layout_marginRight="10dp"
+                        android:gravity="center_vertical"
+                        app:srcCompat="@drawable/fromdelete" />
+
+
+                    <Button
+                        android:id="@+id/btUpdateActSha"
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:layout_marginLeft="3dp"
+                        android:layout_marginRight="8dp"
+                        android:background="@drawable/ic_edit"
+                        android:gravity="center_vertical" />
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:layout_marginLeft="0dp"
+                        android:layout_marginRight="8dp"
+                        android:gravity="center_vertical">
+
+                        <ImageButton
+                            android:id="@+id/btfav"
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:layout_marginStart="4dp"
+                            android:background="@color/white"
+                            android:visibility="visible"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="@+id/btunfav"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/unfaved" />
+
+                        <ImageButton
+                            android:id="@+id/btunfav"
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:layout_marginStart="4dp"
+                            android:background="@color/white"
+                            android:visibility="invisible"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/faved" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fillViewport="true"
+                    android:overScrollMode="never">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@drawable/gradient_light">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="#FFF7F1FF"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginRight="10dp">
+
+
+                                <TextView
+                                    android:id="@+id/tvlvl"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_margin="10dp"
+                                    android:textSize="16dp"
+                                    android:text="lvl"
+                                    android:gravity="left"
+                                    android:textColor="@color/purple_700" />
+
+                                <androidx.constraintlayout.widget.ConstraintLayout
+                                    android:layout_width="50dp"
+                                    android:layout_height="50dp">
+
+                                    <ProgressBar
+                                        android:id="@+id/PbarActsha"
+                                        android:layout_width="50dp"
+                                        android:layout_height="wrap_content"
+                                        android:indeterminateOnly="false"
+                                        android:progress="30"
+                                        android:progressDrawable="@drawable/progcircle"
+                                        app:layout_constraintBottom_toBottomOf="parent"
+                                        app:layout_constraintEnd_toEndOf="parent"
+                                        app:layout_constraintLeft_toLeftOf="parent"
+                                        app:layout_constraintRight_toRightOf="parent"
+                                        app:layout_constraintTop_toTopOf="parent" />
+
+                                    <androidx.appcompat.widget.AppCompatTextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:id="@+id/tvprogActShajara"
+                                        android:text="100"
+                                        android:textSize="20dp"
+                                        android:textStyle="bold"
+                                        app:layout_constraintBottom_toBottomOf="@+id/PbarActsha"
+                                        app:layout_constraintLeft_toLeftOf="@+id/PbarActsha"
+                                        app:layout_constraintRight_toRightOf="@+id/PbarActsha"
+                                        app:layout_constraintTop_toTopOf="@+id/PbarActsha"
+                                        app:layout_constraintHorizontal_bias="0.5"/>
+
+                                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                                <Button
+                                    android:id="@+id/btCopyTxt"
+                                    android:layout_width="30dp"
+                                    android:layout_height="30dp"
+                                    android:layout_margin="10dp"
+                                    android:background="@drawable/ic_copy"/>
+
+                                <Button
+                                    android:id="@+id/btshareThis"
+                                    android:layout_width="30dp"
+                                    android:layout_height="30dp"
+                                    android:layout_margin="10dp"
+                                    android:background="@drawable/ic_share"/>
+
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvshajara"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_margin="7dp"
+                                android:textSize="22dp"
+                                android:text="here"
+                                android:gravity="right"
+                                android:textColor="@color/black"
+                                android:layout_gravity="center"/>
+
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@color/white">
+
+                            <com.example.mooj.NonScrollListView
+                                android:id="@+id/lvactshajara"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/gradient_light"/>
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center"
+                                android:id="@+id/tvEmptyActSha"
+                                android:text="لا يوجد شيء"
+                                android:textSize="40dp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </ScrollView>
+
+            </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/LinearAdd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/btaddibn"
+                        android:layout_width="35dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="0"
+                        android:layout_marginRight="5dp"
+                        android:background="@drawable/add" />
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/edab"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"
+                        android:hint="أضف فرعاً جديداً"
+                        android:layout_gravity="center"
+                        android:padding="5dp"
+                        android:inputType="textMultiLine"
+                        android:maxLines="7"
+                        android:background="@drawable/back_edit" />
+
+                </LinearLayout>
+
+        </LinearLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatdeleteshajara"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias=".9"
+            app:layout_constraintVertical_bias=".68"
+            android:visibility="invisible"
+            android:backgroundTint="@color/white"
+            android:foreground="@drawable/ic_delete_white"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatMoveActSha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias=".9"
+            app:layout_constraintVertical_bias=".54"
+            android:tooltipText="نقل"
+            android:visibility="invisible"
+            android:foreground="@drawable/ic_cut"
+            android:backgroundTint="@color/white"/>
+
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatPasteactSha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias=".9"
+            app:layout_constraintVertical_bias=".8"
+            android:visibility="invisible"
+            android:foreground="@drawable/ic_paste"
+            android:backgroundTint="@color/white"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatPasteCancelactSha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias=".1"
+            app:layout_constraintVertical_bias=".8"
+            android:visibility="invisible"
+            android:backgroundTint="@color/white"
+            android:foreground="@drawable/ic_done2"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatShareactSha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/white"
+            android:foreground="@drawable/ic_share"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias=".9"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias=".4" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floatminiShajara"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:backgroundTint="@color/white"
+            android:foreground="@drawable/grain_ic"
+            app:fabSize="normal"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias=".9"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias=".83" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

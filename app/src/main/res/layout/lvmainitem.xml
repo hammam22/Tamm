@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/linearLV"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@drawable/listback">
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:padding="3dp">
+
+        <LinearLayout
+            android:layout_width="100dp"
+            android:layout_height="45dp"
+            android:orientation="horizontal">
+
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="left">
+
+                <ProgressBar
+                    android:id="@+id/Pbar"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"
+                    android:indeterminateOnly="false"
+                    android:progress="30"
+                    android:progressDrawable="@drawable/progcircle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tvprog"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="30"
+                    android:textSize="20dp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="@+id/Pbar"
+                    app:layout_constraintLeft_toLeftOf="@+id/Pbar"
+                    app:layout_constraintRight_toRightOf="@+id/Pbar"
+                    app:layout_constraintTop_toTopOf="@+id/Pbar" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.appcompat.widget.AppCompatCheckBox
+                android:id="@+id/chblvmain"
+                android:layout_width="28dp"
+                android:layout_height="27dp"
+                android:layout_gravity="center_vertical"
+                android:focusable="false"
+                android:checked="false"
+                android:visibility="invisible" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="25dp"
+                android:layout_height="40dp"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/imgDown"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_marginTop="10dp"
+                    app:srcCompat="@drawable/down_ic"
+                    android:focusable="false"
+                    android:visibility="invisible"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/imgUp"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_gravity="left"
+                    android:layout_marginTop="10dp"
+                    app:srcCompat="@drawable/up_ic"
+                    android:focusable="false"
+                    android:visibility="invisible"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvlsitem"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="right|center_vertical"
+            android:paddingRight="8dp"
+            android:text="TextView"
+            android:textColor="@color/purple_900"
+            android:textSize="22dp" />
+
+    </LinearLayout>
+
+
+</LinearLayout>

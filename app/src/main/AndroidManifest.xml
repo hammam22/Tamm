@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.mooj">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/tamm"
+        android:label="تمّ"
+        android:supportsRtl="false"
+        android:theme="@style/Theme.Mooj">
+        <activity
+            android:name=".ActImport"
+            android:label="@string/title_activity_act_import"
+            android:theme="@style/Theme.Mooj.NoActionBar"></activity>
+        <activity
+            android:name=".ACTfav"
+            android:theme="@style/Theme.Mooj.NoActionBar" />
+        <activity android:name=".SortingItems" />
+        <activity
+            android:name=".MyAcoount"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".ActSinUp"
+            android:parentActivityName=".ActAccount" />
+        <activity
+            android:name=".ActSin"
+            android:parentActivityName=".ActAccount" />
+        <activity
+            android:name=".ActAccount"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".EditShajara"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Mooj.NoActionBar"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ActShajara"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Mooj.NoActionBar"
+            android:windowSoftInputMode="adjustResize" />
+    </application>
+
+</manifest>

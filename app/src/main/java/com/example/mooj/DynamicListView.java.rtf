@@ -1,0 +1,595 @@
+{\rtf1\fbidis\ansi\deff0{\fonttbl{\f0\fnil\fcharset0 Courier New;}}
+{\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\ltrpar\lang1033\f0\fs22 /*\par
+ * Copyright (C) 2013 The Android Open Source Project\par
+ *\par
+ * Licensed under the Apache License, Version 2.0 (the "License");\par
+ * you may not use this file except in compliance with the License.\par
+ * You may obtain a copy of the License at\par
+ *\par
+ *      http://www.apache.org/licenses/LICENSE-2.0\par
+ *\par
+ * Unless required by applicable law or agreed to in writing, software\par
+ * distributed under the License is distributed on an "AS IS" BASIS,\par
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\par
+ * See the License for the specific language governing permissions and\par
+ * limitations under the License.\par
+ */\par
+\par
+package com.example.android.listviewdragginganimation;\par
+\par
+import android.animation.Animator;\par
+import android.animation.AnimatorListenerAdapter;\par
+import android.animation.ObjectAnimator;\par
+import android.animation.TypeEvaluator;\par
+import android.animation.ValueAnimator;\par
+import android.content.Context;\par
+import android.graphics.Bitmap;\par
+import android.graphics.Canvas;\par
+import android.graphics.Color;\par
+import android.graphics.Paint;\par
+import android.graphics.Rect;\par
+import android.graphics.drawable.BitmapDrawable;\par
+import android.util.AttributeSet;\par
+import android.util.DisplayMetrics;\par
+import android.view.MotionEvent;\par
+import android.view.View;\par
+import android.view.ViewTreeObserver;\par
+import android.widget.AbsListView;\par
+import android.widget.AdapterView;\par
+import android.widget.BaseAdapter;\par
+import android.widget.ListView;\par
+\par
+import java.util.ArrayList;\par
+\par
+/**\par
+ * The dynamic listview is an extension of listview that supports cell dragging\par
+ * and swapping.\par
+ *\par
+ * This layout is in charge of positioning the hover cell in the correct location\par
+ * on the screen in response to user touch events. It uses the position of the\par
+ * hover cell to determine when two cells should be swapped. If two cells should\par
+ * be swapped, all the corresponding data set and layout changes are handled here.\par
+ *\par
+ * If no cell is selected, all the touch events are passed down to the listview\par
+ * and behave normally. If one of the items in the listview experiences a\par
+ * long press event, the contents of its current visible state are captured as\par
+ * a bitmap and its visibility is set to INVISIBLE. A hover cell is then created and\par
+ * added to this layout as an overlaying BitmapDrawable above the listview. Once the\par
+ * hover cell is translated some distance to signify an item swap, a data set change\par
+ * accompanied by animation takes place. When the user releases the hover cell,\par
+ * it animates into its corresponding position in the listview.\par
+ *\par
+ * When the hover cell is either above or below the bounds of the listview, this\par
+ * listview also scrolls on its own so as to reveal additional content.\par
+ */\par
+public class DynamicListView extends ListView \{\par
+\par
+    private final int SMOOTH_SCROLL_AMOUNT_AT_EDGE = 15;\par
+    private final int MOVE_DURATION = 150;\par
+    private final int LINE_THICKNESS = 15;\par
+\par
+    public ArrayList<String> mCheeseList;\par
+\par
+    private int mLastEventY = -1;\par
+\par
+    private int mDownY = -1;\par
+    private int mDownX = -1;\par
+\par
+    private int mTotalOffset = 0;\par
+\par
+    private boolean mCellIsMobile = false;\par
+    private boolean mIsMobileScrolling = false;\par
+    private int mSmoothScrollAmountAtEdge = 0;\par
+\par
+    private final int INVALID_ID = -1;\par
+    private long mAboveItemId = INVALID_ID;\par
+    private long mMobileItemId = INVALID_ID;\par
+    private long mBelowItemId = INVALID_ID;\par
+\par
+    private BitmapDrawable mHoverCell;\par
+    private Rect mHoverCellCurrentBounds;\par
+    private Rect mHoverCellOriginalBounds;\par
+\par
+    private final int INVALID_POINTER_ID = -1;\par
+    private int mActivePointerId = INVALID_POINTER_ID;\par
+\par
+    private boolean mIsWaitingForScrollFinish = false;\par
+    private int mScrollState = OnScrollListener.SCROLL_STATE_IDLE;\par
+\par
+    public DynamicListView(Context context) \{\par
+        super(context);\par
+        init(context);\par
+    \}\par
+\par
+    public DynamicListView(Context context, AttributeSet attrs, int defStyle) \{\par
+        super(context, attrs, defStyle);\par
+        init(context);\par
+    \}\par
+\par
+    public DynamicListView(Context context, AttributeSet attrs) \{\par
+        super(context, attrs);\par
+        init(context);\par
+    \}\par
+\par
+    public void init(Context context) \{\par
+        setOnItemLongClickListener(mOnItemLongClickListener);\par
+        setOnScrollListener(mScrollListener);\par
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();\par
+        mSmoothScrollAmountAtEdge = (int)(SMOOTH_SCROLL_AMOUNT_AT_EDGE / metrics.density);\par
+    \}\par
+\par
+    /**\par
+     * Listens for long clicks on any items in the listview. When a cell has\par
+     * been selected, the hover cell is created and set up.\par
+     */\par
+    private AdapterView.OnItemLongClickListener mOnItemLongClickListener =\par
+            new AdapterView.OnItemLongClickListener() \{\par
+                public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int pos, long id) \{\par
+                    mTotalOffset = 0;\par
+\par
+                    int position = pointToPosition(mDownX, mDownY);\par
+                    int itemNum = position - getFirstVisiblePosition();\par
+\par
+                    View selectedView = getChildAt(itemNum);\par
+                    mMobileItemId = getAdapter().getItemId(position);\par
+                    mHoverCell = getAndAddHoverView(selectedView);\par
+                    selectedView.setVisibility(INVISIBLE);\par
+\par
+                    mCellIsMobile = true;\par
+\par
+                    updateNeighborViewsForID(mMobileItemId);\par
+\par
+                    return true;\par
+                \}\par
+            \};\par
+\par
+    /**\par
+     * Creates the hover cell with the appropriate bitmap and of appropriate\par
+     * size. The hover cell's BitmapDrawable is drawn on top of the bitmap every\par
+     * single time an invalidate call is made.\par
+     */\par
+    private BitmapDrawable getAndAddHoverView(View v) \{\par
+\par
+        int w = v.getWidth();\par
+        int h = v.getHeight();\par
+        int top = v.getTop();\par
+        int left = v.getLeft();\par
+\par
+        Bitmap b = getBitmapWithBorder(v);\par
+\par
+        BitmapDrawable drawable = new BitmapDrawable(getResources(), b);\par
+\par
+        mHoverCellOriginalBounds = new Rect(left, top, left + w, top + h);\par
+        mHoverCellCurrentBounds = new Rect(mHoverCellOriginalBounds);\par
+\par
+        drawable.setBounds(mHoverCellCurrentBounds);\par
+\par
+        return drawable;\par
+    \}\par
+\par
+    /** Draws a black border over the screenshot of the view passed in. */\par
+    private Bitmap getBitmapWithBorder(View v) \{\par
+        Bitmap bitmap = getBitmapFromView(v);\par
+        Canvas can = new Canvas(bitmap);\par
+\par
+        Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());\par
+\par
+        Paint paint = new Paint();\par
+        paint.setStyle(Paint.Style.STROKE);\par
+        paint.setStrokeWidth(LINE_THICKNESS);\par
+        paint.setColor(Color.BLACK);\par
+\par
+        can.drawBitmap(bitmap, 0, 0, null);\par
+        can.drawRect(rect, paint);\par
+\par
+        return bitmap;\par
+    \}\par
+\par
+    /** Returns a bitmap showing a screenshot of the view passed in. */\par
+    private Bitmap getBitmapFromView(View v) \{\par
+        Bitmap bitmap = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.ARGB_8888);\par
+        Canvas canvas = new Canvas (bitmap);\par
+        v.draw(canvas);\par
+        return bitmap;\par
+    \}\par
+\par
+    /**\par
+     * Stores a reference to the views above and below the item currently\par
+     * corresponding to the hover cell. It is important to note that if this\par
+     * item is either at the top or bottom of the list, mAboveItemId or mBelowItemId\par
+     * may be invalid.\par
+     */\par
+    private void updateNeighborViewsForID(long itemID) \{\par
+        int position = getPositionForID(itemID);\par
+        StableArrayAdapter adapter = ((StableArrayAdapter)getAdapter());\par
+        mAboveItemId = adapter.getItemId(position - 1);\par
+        mBelowItemId = adapter.getItemId(position + 1);\par
+    \}\par
+\par
+    /** Retrieves the view in the list corresponding to itemID */\par
+    public View getViewForID (long itemID) \{\par
+        int firstVisiblePosition = getFirstVisiblePosition();\par
+        StableArrayAdapter adapter = ((StableArrayAdapter)getAdapter());\par
+        for(int i = 0; i < getChildCount(); i++) \{\par
+            View v = getChildAt(i);\par
+            int position = firstVisiblePosition + i;\par
+            long id = adapter.getItemId(position);\par
+            if (id == itemID) \{\par
+                return v;\par
+            \}\par
+        \}\par
+        return null;\par
+    \}\par
+\par
+    /** Retrieves the position in the list corresponding to itemID */\par
+    public int getPositionForID (long itemID) \{\par
+        View v = getViewForID(itemID);\par
+        if (v == null) \{\par
+            return -1;\par
+        \} else \{\par
+            return getPositionForView(v);\par
+        \}\par
+    \}\par
+\par
+    /**\par
+     *  dispatchDraw gets invoked when all the child views are about to be drawn.\par
+     *  By overriding this method, the hover cell (BitmapDrawable) can be drawn\par
+     *  over the listview's items whenever the listview is redrawn.\par
+     */\par
+    @Override\par
+    protected void dispatchDraw(Canvas canvas) \{\par
+        super.dispatchDraw(canvas);\par
+        if (mHoverCell != null) \{\par
+            mHoverCell.draw(canvas);\par
+        \}\par
+    \}\par
+\par
+    @Override\par
+    public boolean onTouchEvent (MotionEvent event) \{\par
+\par
+        switch (event.getAction() & MotionEvent.ACTION_MASK) \{\par
+            case MotionEvent.ACTION_DOWN:\par
+                mDownX = (int)event.getX();\par
+                mDownY = (int)event.getY();\par
+                mActivePointerId = event.getPointerId(0);\par
+                break;\par
+            case MotionEvent.ACTION_MOVE:\par
+                if (mActivePointerId == INVALID_POINTER_ID) \{\par
+                    break;\par
+                \}\par
+\par
+                int pointerIndex = event.findPointerIndex(mActivePointerId);\par
+\par
+                mLastEventY = (int) event.getY(pointerIndex);\par
+                int deltaY = mLastEventY - mDownY;\par
+\par
+                if (mCellIsMobile) \{\par
+                    mHoverCellCurrentBounds.offsetTo(mHoverCellOriginalBounds.left,\par
+                            mHoverCellOriginalBounds.top + deltaY + mTotalOffset);\par
+                    mHoverCell.setBounds(mHoverCellCurrentBounds);\par
+                    invalidate();\par
+\par
+                    handleCellSwitch();\par
+\par
+                    mIsMobileScrolling = false;\par
+                    handleMobileCellScroll();\par
+\par
+                    return false;\par
+                \}\par
+                break;\par
+            case MotionEvent.ACTION_UP:\par
+                touchEventsEnded();\par
+                break;\par
+            case MotionEvent.ACTION_CANCEL:\par
+                touchEventsCancelled();\par
+                break;\par
+            case MotionEvent.ACTION_POINTER_UP:\par
+                /* If a multitouch event took place and the original touch dictating\par
+                 * the movement of the hover cell has ended, then the dragging event\par
+                 * ends and the hover cell is animated to its corresponding position\par
+                 * in the listview. */\par
+                pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK) >>\par
+                        MotionEvent.ACTION_POINTER_INDEX_SHIFT;\par
+                final int pointerId = event.getPointerId(pointerIndex);\par
+                if (pointerId == mActivePointerId) \{\par
+                    touchEventsEnded();\par
+                \}\par
+                break;\par
+            default:\par
+                break;\par
+        \}\par
+\par
+        return super.onTouchEvent(event);\par
+    \}\par
+\par
+    /**\par
+     * This method determines whether the hover cell has been shifted far enough\par
+     * to invoke a cell swap. If so, then the respective cell swap candidate is\par
+     * determined and the data set is changed. Upon posting a notification of the\par
+     * data set change, a layout is invoked to place the cells in the right place.\par
+     * Using a ViewTreeObserver and a corresponding OnPreDrawListener, we can\par
+     * offset the cell being swapped to where it previously was and then animate it to\par
+     * its new position.\par
+     */\par
+    private void handleCellSwitch() \{\par
+        final int deltaY = mLastEventY - mDownY;\par
+        int deltaYTotal = mHoverCellOriginalBounds.top + mTotalOffset + deltaY;\par
+\par
+        View belowView = getViewForID(mBelowItemId);\par
+        View mobileView = getViewForID(mMobileItemId);\par
+        View aboveView = getViewForID(mAboveItemId);\par
+\par
+        boolean isBelow = (belowView != null) && (deltaYTotal > belowView.getTop());\par
+        boolean isAbove = (aboveView != null) && (deltaYTotal < aboveView.getTop());\par
+\par
+        if (isBelow || isAbove) \{\par
+\par
+            final long switchItemID = isBelow ? mBelowItemId : mAboveItemId;\par
+            View switchView = isBelow ? belowView : aboveView;\par
+            final int originalItem = getPositionForView(mobileView);\par
+\par
+            if (switchView == null) \{\par
+                updateNeighborViewsForID(mMobileItemId);\par
+                return;\par
+            \}\par
+\par
+            swapElements(mCheeseList, originalItem, getPositionForView(switchView));\par
+\par
+            ((BaseAdapter) getAdapter()).notifyDataSetChanged();\par
+\par
+            mDownY = mLastEventY;\par
+\par
+            final int switchViewStartTop = switchView.getTop();\par
+\par
+            mobileView.setVisibility(View.VISIBLE);\par
+            switchView.setVisibility(View.INVISIBLE);\par
+\par
+            updateNeighborViewsForID(mMobileItemId);\par
+\par
+            final ViewTreeObserver observer = getViewTreeObserver();\par
+            observer.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() \{\par
+                public boolean onPreDraw() \{\par
+                    observer.removeOnPreDrawListener(this);\par
+\par
+                    View switchView = getViewForID(switchItemID);\par
+\par
+                    mTotalOffset += deltaY;\par
+\par
+                    int switchViewNewTop = switchView.getTop();\par
+                    int delta = switchViewStartTop - switchViewNewTop;\par
+\par
+                    switchView.setTranslationY(delta);\par
+\par
+                    ObjectAnimator animator = ObjectAnimator.ofFloat(switchView,\par
+                            View.TRANSLATION_Y, 0);\par
+                    animator.setDuration(MOVE_DURATION);\par
+                    animator.start();\par
+\par
+                    return true;\par
+                \}\par
+            \});\par
+        \}\par
+    \}\par
+\par
+    private void swapElements(ArrayList arrayList, int indexOne, int indexTwo) \{\par
+        Object temp = arrayList.get(indexOne);\par
+        arrayList.set(indexOne, arrayList.get(indexTwo));\par
+        arrayList.set(indexTwo, temp);\par
+    \}\par
+\par
+\par
+    /**\par
+     * Resets all the appropriate fields to a default state while also animating\par
+     * the hover cell back to its correct location.\par
+     */\par
+    private void touchEventsEnded () \{\par
+        final View mobileView = getViewForID(mMobileItemId);\par
+        if (mCellIsMobile|| mIsWaitingForScrollFinish) \{\par
+            mCellIsMobile = false;\par
+            mIsWaitingForScrollFinish = false;\par
+            mIsMobileScrolling = false;\par
+            mActivePointerId = INVALID_POINTER_ID;\par
+\par
+            // If the autoscroller has not completed scrolling, we need to wait for it to\par
+            // finish in order to determine the final location of where the hover cell\par
+            // should be animated to.\par
+            if (mScrollState != OnScrollListener.SCROLL_STATE_IDLE) \{\par
+                mIsWaitingForScrollFinish = true;\par
+                return;\par
+            \}\par
+\par
+            mHoverCellCurrentBounds.offsetTo(mHoverCellOriginalBounds.left, mobileView.getTop());\par
+\par
+            ObjectAnimator hoverViewAnimator = ObjectAnimator.ofObject(mHoverCell, "bounds",\par
+                    sBoundEvaluator, mHoverCellCurrentBounds);\par
+            hoverViewAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() \{\par
+                @Override\par
+                public void onAnimationUpdate(ValueAnimator valueAnimator) \{\par
+                    invalidate();\par
+                \}\par
+            \});\par
+            hoverViewAnimator.addListener(new AnimatorListenerAdapter() \{\par
+                @Override\par
+                public void onAnimationStart(Animator animation) \{\par
+                    setEnabled(false);\par
+                \}\par
+\par
+                @Override\par
+                public void onAnimationEnd(Animator animation) \{\par
+                    mAboveItemId = INVALID_ID;\par
+                    mMobileItemId = INVALID_ID;\par
+                    mBelowItemId = INVALID_ID;\par
+                    mobileView.setVisibility(VISIBLE);\par
+                    mHoverCell = null;\par
+                    setEnabled(true);\par
+                    invalidate();\par
+                \}\par
+            \});\par
+            hoverViewAnimator.start();\par
+        \} else \{\par
+            touchEventsCancelled();\par
+        \}\par
+    \}\par
+\par
+    /**\par
+     * Resets all the appropriate fields to a default state.\par
+     */\par
+    private void touchEventsCancelled () \{\par
+        View mobileView = getViewForID(mMobileItemId);\par
+        if (mCellIsMobile) \{\par
+            mAboveItemId = INVALID_ID;\par
+            mMobileItemId = INVALID_ID;\par
+            mBelowItemId = INVALID_ID;\par
+            mobileView.setVisibility(VISIBLE);\par
+            mHoverCell = null;\par
+            invalidate();\par
+        \}\par
+        mCellIsMobile = false;\par
+        mIsMobileScrolling = false;\par
+        mActivePointerId = INVALID_POINTER_ID;\par
+    \}\par
+\par
+    /**\par
+     * This TypeEvaluator is used to animate the BitmapDrawable back to its\par
+     * final location when the user lifts his finger by modifying the\par
+     * BitmapDrawable's bounds.\par
+     */\par
+    private final static TypeEvaluator<Rect> sBoundEvaluator = new TypeEvaluator<Rect>() \{\par
+        public Rect evaluate(float fraction, Rect startValue, Rect endValue) \{\par
+            return new Rect(interpolate(startValue.left, endValue.left, fraction),\par
+                    interpolate(startValue.top, endValue.top, fraction),\par
+                    interpolate(startValue.right, endValue.right, fraction),\par
+                    interpolate(startValue.bottom, endValue.bottom, fraction));\par
+        \}\par
+\par
+        public int interpolate(int start, int end, float fraction) \{\par
+            return (int)(start + fraction * (end - start));\par
+        \}\par
+    \};\par
+\par
+    /**\par
+     *  Determines whether this listview is in a scrolling state invoked\par
+     *  by the fact that the hover cell is out of the bounds of the listview;\par
+     */\par
+    private void handleMobileCellScroll() \{\par
+        mIsMobileScrolling = handleMobileCellScroll(mHoverCellCurrentBounds);\par
+    \}\par
+\par
+    /**\par
+     * This method is in charge of determining if the hover cell is above\par
+     * or below the bounds of the listview. If so, the listview does an appropriate\par
+     * upward or downward smooth scroll so as to reveal new items.\par
+     */\par
+    public boolean handleMobileCellScroll(Rect r) \{\par
+        int offset = computeVerticalScrollOffset();\par
+        int height = getHeight();\par
+        int extent = computeVerticalScrollExtent();\par
+        int range = computeVerticalScrollRange();\par
+        int hoverViewTop = r.top;\par
+        int hoverHeight = r.height();\par
+\par
+        if (hoverViewTop <= 0 && offset > 0) \{\par
+            smoothScrollBy(-mSmoothScrollAmountAtEdge, 0);\par
+            return true;\par
+        \}\par
+\par
+        if (hoverViewTop + hoverHeight >= height && (offset + extent) < range) \{\par
+            smoothScrollBy(mSmoothScrollAmountAtEdge, 0);\par
+            return true;\par
+        \}\par
+\par
+        return false;\par
+    \}\par
+\par
+    public void setCheeseList(ArrayList<String> cheeseList) \{\par
+        mCheeseList = cheeseList;\par
+    \}\par
+\par
+    /**\par
+     * This scroll listener is added to the listview in order to handle cell swapping\par
+     * when the cell is either at the top or bottom edge of the listview. If the hover\par
+     * cell is at either edge of the listview, the listview will begin scrolling. As\par
+     * scrolling takes place, the listview continuously checks if new cells became visible\par
+     * and determines whether they are potential candidates for a cell swap.\par
+     */\par
+    private AbsListView.OnScrollListener mScrollListener = new AbsListView.OnScrollListener () \{\par
+\par
+        private int mPreviousFirstVisibleItem = -1;\par
+        private int mPreviousVisibleItemCount = -1;\par
+        private int mCurrentFirstVisibleItem;\par
+        private int mCurrentVisibleItemCount;\par
+        private int mCurrentScrollState;\par
+\par
+        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount,\par
+                             int totalItemCount) \{\par
+            mCurrentFirstVisibleItem = firstVisibleItem;\par
+            mCurrentVisibleItemCount = visibleItemCount;\par
+\par
+            mPreviousFirstVisibleItem = (mPreviousFirstVisibleItem == -1) ? mCurrentFirstVisibleItem\par
+                    : mPreviousFirstVisibleItem;\par
+            mPreviousVisibleItemCount = (mPreviousVisibleItemCount == -1) ? mCurrentVisibleItemCount\par
+                    : mPreviousVisibleItemCount;\par
+\par
+            checkAndHandleFirstVisibleCellChange();\par
+            checkAndHandleLastVisibleCellChange();\par
+\par
+            mPreviousFirstVisibleItem = mCurrentFirstVisibleItem;\par
+            mPreviousVisibleItemCount = mCurrentVisibleItemCount;\par
+        \}\par
+\par
+        @Override\par
+        public void onScrollStateChanged(AbsListView view, int scrollState) \{\par
+            mCurrentScrollState = scrollState;\par
+            mScrollState = scrollState;\par
+            isScrollCompleted();\par
+        \}\par
+\par
+        /**\par
+         * This method is in charge of invoking 1 of 2 actions. Firstly, if the listview\par
+         * is in a state of scrolling invoked by the hover cell being outside the bounds\par
+         * of the listview, then this scrolling event is continued. Secondly, if the hover\par
+         * cell has already been released, this invokes the animation for the hover cell\par
+         * to return to its correct position after the listview has entered an idle scroll\par
+         * state.\par
+         */\par
+        private void isScrollCompleted() \{\par
+            if (mCurrentVisibleItemCount > 0 && mCurrentScrollState == SCROLL_STATE_IDLE) \{\par
+                if (mCellIsMobile && mIsMobileScrolling) \{\par
+                    handleMobileCellScroll();\par
+                \} else if (mIsWaitingForScrollFinish) \{\par
+                    touchEventsEnded();\par
+                \}\par
+            \}\par
+        \}\par
+\par
+        /**\par
+         * Determines if the listview scrolled up enough to reveal a new cell at the\par
+         * top of the list. If so, then the appropriate parameters are updated.\par
+         */\par
+        public void checkAndHandleFirstVisibleCellChange() \{\par
+            if (mCurrentFirstVisibleItem != mPreviousFirstVisibleItem) \{\par
+                if (mCellIsMobile && mMobileItemId != INVALID_ID) \{\par
+                    updateNeighborViewsForID(mMobileItemId);\par
+                    handleCellSwitch();\par
+                \}\par
+            \}\par
+        \}\par
+\par
+        /**\par
+         * Determines if the listview scrolled down enough to reveal a new cell at the\par
+         * bottom of the list. If so, then the appropriate parameters are updated.\par
+         */\par
+        public void checkAndHandleLastVisibleCellChange() \{\par
+            int currentLastVisibleItem = mCurrentFirstVisibleItem + mCurrentVisibleItemCount;\par
+            int previousLastVisibleItem = mPreviousFirstVisibleItem + mPreviousVisibleItemCount;\par
+            if (currentLastVisibleItem != previousLastVisibleItem) \{\par
+                if (mCellIsMobile && mMobileItemId != INVALID_ID) \{\par
+                    updateNeighborViewsForID(mMobileItemId);\par
+                    handleCellSwitch();\par
+                \}\par
+            \}\par
+        \}\par
+    \};\par
+\}\par
+}
+ 

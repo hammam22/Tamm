@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigaion_veiw">
+
+
+    <item android:id="@+id/mnuAccount"
+        android:title="مزامنة"
+        android:icon="@mipmap/sync"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/MyAccountitem"
+        android:title="الحساب"
+        android:icon="@mipmap/person"
+        app:showAsAction="ifRoom"/>
+
+    <item android:id="@+id/addFromDB"
+        android:title="اضافة بيانات من ملف"
+        android:icon="@mipmap/addnotes"
+        app:showAsAction="ifRoom"/>
+
+    <item android:id="@+id/saveBackupToSD"
+        android:title="تصدير نسخة بيانات للذاكرة"
+        android:icon="@mipmap/sd"
+        app:showAsAction="ifRoom"/>
+
+</menu>
